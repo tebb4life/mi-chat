@@ -1,43 +1,39 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-const path = require('path');
+const http = require("http");
+const { Server } = require("socket.io");
 
- HEAD
-// Servir la carpeta "public" (donde estará index.html)
-app.use(express.static(path.join(__dirname, 'public')));
+const server = http.createServer(app);
 
-// Ruta raíz
-
-// Servir la carpeta "public"
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Ruta principal
- 18a7de3 (Preparado para Render)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+const io = new Server(server, {
+  cors: {
+    origin: "*", // permite conexiones desde cualquier lugar
+    methods: ["GET", "POST"]
+  }
 });
 
-// Socket.io
-io.on('connection', (socket) => {
-  console.log('Usuario conectado');
-<<<<<<< HEAD
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);
-=======
+// Servir archivos estáticos de la carpeta public
+app.use(express.static("public"));
 
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);
+// Manejar conexiones de Socket.IO
+io.on("connection", (socket) => {
+  console.log("Usuario conectado:", socket.id);
+
+  // Escuchar mensajes
+  socket.on("chat message", (msg) => {
+    console.log("Mensaje recibido:", msg);
+    // Enviar a todos los clientes conectados
+    io.emit("chat message", msg);
   });
 
-  socket.on('disconnect', () => {
-    console.log('Usuario desconectado');
->>>>>>> 18a7de3 (Preparado para Render)
+  // Desconexión
+  socket.on("disconnect", () => {
+    console.log("Usuario desconectado:", socket.id);
   });
 });
 
+// Puerto de Render o local
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => {
-  console.log(`Servidor escuchando en puerto ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Servidor funcionando en puerto ${PORT}`);
 });

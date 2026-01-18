@@ -1,41 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+  <meta charset="UTF-8">
   <title>Mi Chat</title>
   <style>
-    body { font-family: Arial; margin: 20px; }
-    #messages { list-style-type: none; padding: 0; }
-    #messages li { padding: 5px 0; }
-    #form { margin-top: 10px; }
+    body { font-family: Arial, sans-serif; margin: 50px; }
+    #messages { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; }
+    #messages li { padding: 5px 10px; border-bottom: 1px solid #ddd; }
+    #form { display: flex; margin-top: 10px; }
+    #input { flex: 1; padding: 10px; font-size: 16px; }
+    #send { padding: 10px 20px; font-size: 16px; }
   </style>
 </head>
 <body>
   <h1>Mi Chat</h1>
   <ul id="messages"></ul>
   <form id="form">
-    <input id="input" autocomplete="off" /><button>Enviar</button>
+    <input id="input" autocomplete="off" placeholder="Escribí tu mensaje..." />
+    <button id="send">Enviar</button>
   </form>
 
-  <script src="/socket.io/socket.io.js"></script>
+  <!-- Socket.IO desde el servidor remoto -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
-    const socket = io("https://mi-chat-fw21.onrender.com");
-    const form = document.getElementById('form');
-    const input = document.getElementById('input');
-    const messages = document.getElementById('messages');
+    const socket = io("https://mi-chat-fw21.onrender.com"); // tu servidor en Render
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      if(input.value) {
-        socket.emit('chat message', input.value);
-        input.value = '';
-      }
-    });
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+    const messages = document.getElementById("messages");
 
-    socket.on('chat message', function(msg){
-      const item = document.createElement('li');
+    // Escuchar mensajes del servidor
+    socket.on("chat message", (msg) => {
+      const item = document.createElement("li");
       item.textContent = msg;
       messages.appendChild(item);
-      window.scrollTo(0, document.body.scrollHeight);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    // Enviar mensaje
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit("chat message", input.value);
+        input.value = "";
+      }
     });
   </script>
 </body>
