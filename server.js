@@ -1,28 +1,26 @@
-const express = require("express");
+const express = require('express');
 const app = express();
-const http = require("http").createServer(app);
-const io = require("socket.io")(http);
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
+const path = require('path');
 
-// servir archivos del frontend
-app.use(express.static("public"));
+// Servir la carpeta "public" (donde estará index.html)
+app.use(express.static(path.join(__dirname, 'public')));
 
-io.on("connection", (socket) => {
-  console.log("Usuario conectado");
+// Ruta raíz
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-  // recibir mensaje
-  socket.on("mensaje", (msg) => {
-    // reenviar a todos
-    io.emit("mensaje", msg);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Usuario desconectado");
+// Socket.io
+io.on('connection', (socket) => {
+  console.log('Usuario conectado');
+  socket.on('chat message', (msg) => {
+    io.emit('chat message', msg);
   });
 });
 
 const PORT = process.env.PORT || 3000;
-
 http.listen(PORT, () => {
-  console.log("Servidor funcionando en puerto " + PORT);
+  console.log(`Servidor escuchando en puerto ${PORT}`);
 });
-
