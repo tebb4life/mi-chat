@@ -1,94 +1,42 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Mi Chat</title>
-
-  <!-- Manifest PWA -->
-  <link rel="manifest" href="manifest.json">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      padding: 20px;
-    }
-
-    #chat {
-      background: white;
-      border: 1px solid #ccc;
-      height: 300px;
-      overflow-y: auto;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-
-    input {
-      padding: 8px;
-      width: 70%;
-    }
-
-    button {
-      padding: 8px;
-    }
+    body { font-family: Arial; margin: 20px; }
+    #messages { list-style-type: none; padding: 0; }
+    #messages li { padding: 5px 0; }
+    #form { margin-top: 10px; }
   </style>
 </head>
-
 <body>
+  <h1>Mi Chat</h1>
+  <ul id="messages"></ul>
+  <form id="form">
+    <input id="input" autocomplete="off" /><button>Enviar</button>
+  </form>
 
-  <h2>💬 Mi Chat</h2>
-
-  <div id="chat"></div>
-
-  <input id="mensaje" placeholder="Escribí un mensaje">
-  <button id="enviar">Enviar</button>
-
-  <!-- Socket.io -->
   <script src="/socket.io/socket.io.js"></script>
-
   <script>
     const socket = io();
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const messages = document.getElementById('messages');
 
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("mensaje");
-    const boton = document.getElementById("enviar");
-
-    boton.addEventListener("click", enviarMensaje);
-
-    input.addEventListener("keypress", function (e) {
-      if (e.key === "Enter") {
-        enviarMensaje();
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if(input.value) {
+        socket.emit('chat message', input.value);
+        input.value = '';
       }
     });
 
-    function enviarMensaje() {
-      const texto = input.value.trim();
-      if (texto !== "") {
-        socket.emit("mensaje", texto);
-        input.value = "";
-      }
-    }
-
-    socket.on("mensaje", (msg) => {
-      const p = document.createElement("p");
-      p.textContent = msg;
-      chat.appendChild(p);
-      chat.scrollTop = chat.scrollHeight;
+    socket.on('chat message', function(msg){
+      const item = document.createElement('li');
+      item.textContent = msg;
+      messages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
     });
-
-    // 🔑 REGISTRO DEL SERVICE WORKER
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js")
-        .then(() => {
-          console.log("Service Worker registrado correctamente");
-        })
-        .catch(err => {
-          console.log("Error al registrar SW:", err);
-        });
-    }
   </script>
-
 </body>
 </html>
