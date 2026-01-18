@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Mi Chat</title>
+</head>
+
+<body>
+
+  <h2>Chat</h2>
+
+  <div id="mensajes"></div>
+
+  <input id="mensaje" placeholder="Escribí un mensaje..." />
+  <button id="enviar">Enviar</button>
+
+  <p id="escribiendo"></p>
+
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+    const socket = io();
+
+    let nombre = prompt("¿Cómo te llamás?");
+
+    const input = document.getElementById("mensaje");
+    const boton = document.getElementById("enviar");
+    const mensajes = document.getElementById("mensajes");
+
+    socket.on("connect", () => {
+      socket.emit("nuevo_usuario", nombre);
+    });
+
+    boton.addEventListener("click", () => {
+      socket.emit("mensaje", {
+        nombre: nombre,
+        texto: input.value
+      });
+
+      input.value = "";
+    });
+
+    socket.on("mensaje", (data) => {
+      const p = document.createElement("p");
+      p.innerText = data.nombre + ": " + data.texto;
+      mensajes.appendChild(p);
+
+      document.getElementById("escribiendo").innerText = "";
+    });
+
+    input.addEventListener("input", () => {
+      socket.emit("escribiendo", nombre);
+    });
+
+    socket.on("mostrar_escribiendo", (nombre) => {
+      document.getElementById("escribiendo").innerText =
+        nombre + " está escribiendo...";
+    });
+  </script>
+
+</body>
+</html>
