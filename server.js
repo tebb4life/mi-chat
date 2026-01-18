@@ -1,39 +1,34 @@
 const express = require("express");
 const app = express();
-const http = require("http");
-const { Server } = require("socket.io");
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
+const path = require("path");
 
-const server = http.createServer(app);
+// Servir los archivos estáticos desde public
+app.use(express.static(path.join(__dirname, "public")));
 
-const io = new Server(server, {
-  cors: {
-    origin: "*", // permite conexiones desde cualquier lugar
-    methods: ["GET", "POST"]
-  }
+// Servir index.html en la raíz
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-// Servir archivos estáticos de la carpeta public
-app.use(express.static("public"));
-
-// Manejar conexiones de Socket.IO
+// Manejar conexiones de socket
 io.on("connection", (socket) => {
-  console.log("Usuario conectado:", socket.id);
+  console.log("Usuario conectado");
 
-  // Escuchar mensajes
+  // Recibir mensajes del cliente
   socket.on("chat message", (msg) => {
-    console.log("Mensaje recibido:", msg);
-    // Enviar a todos los clientes conectados
+    // Reenviar mensaje a todos los clientes conectados
     io.emit("chat message", msg);
   });
 
-  // Desconexión
   socket.on("disconnect", () => {
-    console.log("Usuario desconectado:", socket.id);
+    console.log("Usuario desconectado");
   });
 });
 
-// Puerto de Render o local
+// Escuchar puerto de Render o 3000 local
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Servidor funcionando en puerto ${PORT}`);
+http.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
