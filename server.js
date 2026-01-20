@@ -15,27 +15,27 @@ io.on("connection", (socket) => {
 
     socket.broadcast.emit(
       "system",
-      `${username} se conectó`
+      username + " se conectó"
     );
   });
 
   socket.on("chat message", (msg) => {
-    io.emit("chat message", {
-      user: socket.username,
-      text: msg
-    });
+    io.emit(
+      "chat message",
+      socket.username + ": " + msg
+    );
   });
 
   socket.on("disconnect", () => {
     if (socket.username) {
       socket.broadcast.emit(
         "system",
-        `${socket.username} se desconectó`
+        socket.username + " se desconectó"
       );
     }
   });
 });
 
 http.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto", PORT);
+  console.log("Servidor funcionando en puerto " + PORT);
 });
