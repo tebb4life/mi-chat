@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Mi Chat</title>
 
   <style>
     body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #e5ddd5;
+      font-family: Arial, sans-serif;
+      background: #ece5dd;
       margin: 0;
+      padding: 0;
     }
 
     h2 {
@@ -20,131 +20,146 @@
       text-align: center;
     }
 
+    #usersBox {
+      background: #ffffff;
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    #usersBox ul {
+      list-style: none;
+      padding: 0;
+      margin: 5px 0 0 0;
+    }
+
+    #usersBox li {
+      font-size: 14px;
+      padding: 3px 0;
+    }
+
+    #chat {
+      padding: 10px;
+      height: 65vh;
+      overflow-y: auto;
+      background: #e5ddd5;
+    }
+
     #messages {
       list-style: none;
-      padding: 10px;
-      height: 75vh;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
+      padding: 0;
+      margin: 0;
     }
 
     #messages li {
-      max-width: 75%;
+      background: #ffffff;
+      margin: 5px 0;
       padding: 8px 12px;
-      margin-bottom: 8px;
-      border-radius: 10px;
-      font-size: 15px;
-      line-height: 1.4;
-    }
-
-    .me {
-      background: #dcf8c6;
-      align-self: flex-end;
-      text-align: right;
-    }
-
-    .other {
-      background: white;
-      align-self: flex-start;
+      border-radius: 7px;
+      max-width: 80%;
     }
 
     .system {
-      background: none;
-      color: #666;
-      font-style: italic;
+      background: transparent;
+      color: #555;
+      font-size: 13px;
       text-align: center;
-      align-self: center;
     }
 
     form {
       display: flex;
       padding: 10px;
       background: #f0f0f0;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      box-sizing: border-box;
     }
 
     input {
       flex: 1;
       padding: 10px;
-      border-radius: 20px;
-      border: none;
       font-size: 16px;
-      outline: none;
     }
 
     button {
-      margin-left: 10px;
-      padding: 10px 18px;
-      border: none;
-      border-radius: 20px;
+      padding: 10px;
+      font-size: 16px;
       background: #075e54;
       color: white;
-      font-size: 16px;
+      border: none;
     }
   </style>
 </head>
 
 <body>
 
-  <h2>💬 Mi Chat</h2>
+  <h2>Mi Chat</h2>
 
-  <ul id="messages"></ul>
+  <div id="usersBox">
+    <strong>Usuarios conectados</strong>
+    <ul id="users"></ul>
+  </div>
+
+  <div id="chat">
+    <ul id="messages"></ul>
+  </div>
 
   <form id="form">
-    <input id="input" autocomplete="off" placeholder="Escribí un mensaje..." />
+    <input id="input" autocomplete="off" placeholder="Escribe un mensaje..." />
     <button>Enviar</button>
   </form>
 
+  <!-- Socket.IO -->
   <script src="/socket.io/socket.io.js"></script>
 
   <script>
     const socket = io();
 
+    const messages = document.getElementById("messages");
+    const usersList = document.getElementById("users");
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+
     let username = "";
 
     while (!username) {
-      username = prompt("¿Cuál es tu nombre?");
+      username = prompt("Ingresa tu nombre");
     }
 
     socket.emit("join", username);
 
-    const form = document.getElementById("form");
-    const input = document.getElementById("input");
-    const messages = document.getElementById("messages");
+    // Mensajes normales
+    socket.on("chat message", (msg) => {
+      const li = document.createElement("li");
+      li.textContent = msg;
+      messages.appendChild(li);
+      chat.scrollTop = chat.scrollHeight;
+    });
 
+    // Mensajes del sistema
+    socket.on("system", (msg) => {
+      const li = document.createElement("li");
+      li.textContent = msg;
+      li.classList.add("system");
+      messages.appendChild(li);
+      chat.scrollTop = chat.scrollHeight;
+    });
+
+    // Lista de usuarios
+    socket.on("users", (users) => {
+      usersList.innerHTML = "";
+
+      users.forEach(user => {
+        const li = document.createElement("li");
+        li.textContent = user;
+        usersList.appendChild(li);
+      });
+    });
+
+    // Enviar mensaje
     form.addEventListener("submit", (e) => {
       e.preventDefault();
 
-      if (input.value) {
+      if (input.value.trim() !== "") {
         socket.emit("chat message", input.value);
         input.value = "";
       }
-    });
-
-    socket.on("chat message", (msg) => {
-      const li = document.createElement("li");
-
-      if (msg.startsWith(username + ":")) {
-        li.classList.add("me");
-      } else {
-        li.classList.add("other");
-      }
-
-      li.textContent = msg;
-      messages.appendChild(li);
-      messages.scrollTop = messages.scrollHeight;
-    });
-
-    socket.on("system", (msg) => {
-      const li = document.createElement("li");
-      li.classList.add("system");
-      li.textContent = msg;
-      messages.appendChild(li);
-      messages.scrollTop = messages.scrollHeight;
     });
   </script>
 
