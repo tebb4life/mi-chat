@@ -1,6 +1,11 @@
 const socket = io();
 
-let username = prompt("Ingresa tu nombre");
+let username = "";
+
+while (!username) {
+  username = prompt("Ingresá tu nombre:");
+}
+
 socket.emit("join", username);
 
 const form = document.getElementById("form");
@@ -17,17 +22,17 @@ form.addEventListener("submit", (e) => {
 });
 
 socket.on("chat message", (data) => {
-  const item = document.createElement("li");
-  item.innerHTML = `<strong style="color:${data.color}">
-    ${data.user}
-  </strong>: ${data.msg}`;
-  messages.appendChild(item);
+  addMessage(data.username + ": " + data.message, data.color);
 });
 
 socket.on("system", (data) => {
-  const item = document.createElement("li");
-  item.innerHTML = `<em style="color:${data.color}">
-    ${data.text}
-  </em>`;
-  messages.appendChild(item);
+  addMessage(data.text, data.color);
 });
+
+function addMessage(text, color) {
+  const item = document.createElement("li");
+  item.textContent = text;
+  item.style.color = color || "#ffffff";
+  messages.appendChild(item);
+  window.scrollTo(0, document.body.scrollHeight);
+}
