@@ -1,73 +1,58 @@
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+
 const app = express();
-const http = require("http").createServer(app);
-const io = require("socket.io")(http);
+const server = http.createServer(app);
+const io = new Server(server);
 
-const PORT = process.env.PORT || 3000;
-
-app.use(express.static("public"));
-
-// colores
-
-const userColors = {};
-
-function randomColor() {
+// 👇 ESTA FUNCIÓN VA ACÁ
+function getRandomColor() {
   const colors = [
-    "#3b82f6", // azul
-    "#22c55e", // verde
-    "#f97316", // naranja
-    "#a855f7", // violeta
-    "#ef4444", // rojo
-    "#06b6d4", // celeste
-    "#eab308"  // amarillo
+    "#e74c3c",
+    "#3498db",
+    "#2ecc71",
+    "#9b59b6",
+    "#f1c40f",
+    "#e67e22",
+    "#1abc9c"
   ];
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
+app.use(express.static("public"));
 
 io.on("connection", (socket) => {
 
-socket.on("join", (username) => {
-  socket.username = username;
-
   socket.color = getRandomColor();
 
-  socket.broadcast.emit("user-connected", {
-    user: username,
-    color: socket.color
+  socket.on("join", (username) => {
+    socket.username = username;
+    socket.broadcast.emit("system", {
+      text: `${username} se conectó`,
+      color: socket.color
+    });
   });
-});
 
-
-socket.on("send-message", (message) => {
-  io.emit("chat-message", {
-    user: socket.username,
-    message: message,
-    color: socket.color
-  });
-});
-
-socket.on("disconnect", () => {
-  socket.broadcast.emit("user-disconnected", {
-    user: socket.username,
-    color: socket.color
-  });
-});
-
-
-  // mensajes normales
   socket.on("chat message", (msg) => {
-    io.emit("chat message", msg);
+    io.emit("chat message", {
+      user: socket.username,
+      msg: msg,
+      color: socket.color
+    });
   });
 
-  // cuando se va
   socket.on("disconnect", () => {
-    if (socket.nombre) {
-      io.emit("mensaje sistema", `🔴 ${socket.nombre} salió del chat`);
+    if (socket.username) {
+      socket.broadcast.emit("system", {
+        text: `${socket.username} se desconectó`,
+        color: socket.color
+      });
     }
   });
+
 });
 
-http.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto " + PORT);
+server.listen(3000, () => {
+  console.log("Servidor funcionando");
 });
