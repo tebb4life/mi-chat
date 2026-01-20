@@ -2,69 +2,85 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Mi Chat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Chat</title>
 
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
       background: #f2f2f2;
       margin: 0;
       padding: 0;
     }
 
-    #chat {
-      max-width: 500px;
-      margin: 30px auto;
-      background: white;
-      border-radius: 8px;
+    h2 {
+      text-align: center;
+      background: #222;
+      color: white;
+      margin: 0;
       padding: 15px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
 
-    ul {
+    #messages {
       list-style: none;
-      padding: 0;
-      height: 300px;
+      padding: 10px;
+      margin: 0;
+      height: 75vh;
       overflow-y: auto;
-      border: 1px solid #ddd;
-      margin-bottom: 10px;
     }
 
-    li {
-      padding: 5px;
+    #messages li {
+      padding: 6px 10px;
+      margin-bottom: 4px;
+      background: white;
+      border-radius: 6px;
     }
 
     form {
       display: flex;
+      padding: 10px;
+      background: #ddd;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     input {
       flex: 1;
       padding: 10px;
+      border: none;
+      border-radius: 5px;
       font-size: 16px;
     }
 
     button {
-      padding: 10px;
+      margin-left: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background: #222;
+      color: white;
       font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #444;
     }
   </style>
 </head>
 
 <body>
-  <div id="chat">
-    <ul id="messages"></ul>
 
-    <form id="form">
-      <input id="input" autocomplete="off" placeholder="Escribí un mensaje..." />
-      <button>Enviar</button>
-    </form>
-  </div>
+  <h2>💬 Mi Chat</h2>
 
-  <!-- socket.io -->
-  <script src="/socket.io/socket.io.js"></script>
+  <ul id="messages"></ul>
 
+  <form id="form">
+    <input id="input" autocomplete="off" placeholder="Escribí un mensaje..." />
+    <button>Enviar</button>
+  </form>
  <script>
 const socket = io();
 
@@ -102,7 +118,11 @@ socket.on("system", (msg) => {
   messages.appendChild(item);
 });
 </script>
-<script src="/socket.io/socket.io.js"></script>
-<script src="script.js"></script>
+  <!-- SOCKET.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- TU SCRIPT -->
+  <script src="script.js"></script>
+
 </body>
 </html>

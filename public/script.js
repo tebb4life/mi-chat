@@ -3,7 +3,7 @@ const socket = io();
 let username = "";
 
 while (!username) {
-  username = prompt("Ingresa tu nombre");
+  username = prompt("Ingresá tu nombre");
 }
 
 socket.emit("join", username);
@@ -15,24 +15,35 @@ const messages = document.getElementById("messages");
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  if (input.value.trim()) {
+  if (input.value.trim() !== "") {
     socket.emit("chat message", input.value);
     input.value = "";
   }
 });
 
-// mensajes normales
+// MENSAJES NORMALES
 socket.on("chat message", (data) => {
   const item = document.createElement("li");
-  item.innerHTML = `<strong style="color:${data.color}">${data.username}</strong>: ${data.message}`;
+
+  item.innerHTML = `
+    <span style="color:${data.color}; font-weight:bold">
+      ${data.username}
+    </span>: ${data.message}
+  `;
+
   messages.appendChild(item);
-  messages.scrollTop = messages.scrollHeight;
+  window.scrollTo(0, document.body.scrollHeight);
 });
 
-// mensajes del sistema
+// MENSAJES DEL SISTEMA
 socket.on("system", (data) => {
   const item = document.createElement("li");
-  item.innerHTML = `<em style="color:${data.color}">${data.text}</em>`;
+
+  item.innerHTML = `
+    <em style="color:${data.color}">
+      ${data.text}
+    </em>
+  `;
+
   messages.appendChild(item);
-  messages.scrollTop = messages.scrollHeight;
 });
