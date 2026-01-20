@@ -1,36 +1,58 @@
-const socket = io();
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 
-let username = prompt("Ingresa tu nombre");
-socket.emit("join", username);
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
-const form = document.getElementById("form");
-const input = document.getElementById("input");
-const messages = document.getElementById("messages");
+function getRandomColor() {
+  const colors = [
+    "#e74c3c",
+    "#3498db",
+    "#2ecc71",
+    "#9b59b6",
+    "#f1c40f",
+    "#e67e22",
+    "#1abc9c"
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
 
-// enviar mensaje
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
+app.use(express.static("public"));
 
-  if (input.value.trim() !== "") {
-    socket.emit("chat message", input.value);
-    input.value = "";
-  }
+io.on("connection", (socket) => {
+
+  socket.color = getRandomColor();
+
+  socket.on("join", (username) => {
+    socket.username = username;
+
+    socket.broadcast.emit("system", {
+      text: `${username} se conectó`,
+      color: socket.color
+    });
+  });
+
+  socket.on("chat message", (msg) => {
+    io.emit("chat message", {
+      user: socket.username,
+      msg: msg,
+      color: socket.color
+    });
+  });
+
+  socket.on("disconnect", () => {
+    if (socket.username) {
+      socket.broadcast.emit("system", {
+        text: `${socket.username} se desconectó`,
+        color: socket.color
+      });
+    }
+  });
+
 });
 
-// recibir mensajes normales
-socket.on("chat message", (data) => {
-  const item = document.createElement("li");
-  item.innerHTML = `<strong style="color:${data.color}">
-    ${data.user}
-  </strong>: ${data.msg}`;
-  messages.appendChild(item);
-});
-
-// mensajes del sistema
-socket.on("system", (data) => {
-  const item = document.createElement("li");
-  item.innerHTML = `<em style="color:${data.color}">
-    ${data.text}
-  </em>`;
-  messages.appendChild(item);
+server.listen(3000, () => {
+  console.log("Servidor funcionando");
 });
