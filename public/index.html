@@ -20,29 +20,37 @@
     <button id="send">Enviar</button>
   </form>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io(); // Se conecta al mismo host y puerto automáticamente
-    const form = document.getElementById("form");
-    const input = document.getElementById("input");
-    const messages = document.getElementById("messages");
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
 
-    // Enviar mensaje al presionar enviar
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (input.value) {
-        socket.emit("chat message", input.value);
-        input.value = "";
-      }
-    });
+  // pedir nombre al entrar
+  let username = prompt("¿Cómo te llamás?");
+  if (!username) {
+    username = "Invitado";
+  }
 
-    // Recibir mensaje de cualquier usuario
-    socket.on("chat message", (msg) => {
-      const item = document.createElement("li");
-      item.textContent = msg;
-      messages.appendChild(item);
-      messages.scrollTop = messages.scrollHeight; // Scroll automático
-    });
-  </script>
+  const form = document.getElementById("form");
+  const input = document.getElementById("input");
+  const messages = document.getElementById("messages");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    if (input.value) {
+      const mensaje = username + ": " + input.value;
+      socket.emit("chat message", mensaje);
+      input.value = "";
+    }
+  });
+
+  socket.on("chat message", (msg) => {
+    const item = document.createElement("li");
+    item.textContent = msg;
+    messages.appendChild(item);
+    messages.scrollTop = messages.scrollHeight;
+  });
+</script>
+
 </body>
 </html>
