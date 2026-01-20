@@ -65,50 +65,45 @@
   <!-- socket.io -->
   <script src="/socket.io/socket.io.js"></script>
 
-  <script>
-    const socket = io();
+ <script>
+  const socket = io();
 
-    const form = document.getElementById("form");
-    const input = document.getElementById("input");
-    const messages = document.getElementById("messages");
+  const form = document.getElementById("form");
+  const input = document.getElementById("input");
+  const messages = document.getElementById("messages");
 
-    // 👉 pedir nombre
-    let username = prompt("¿Cómo te llamás?");
-    if (!username) username = "Invitado";
+  // pedir nombre
+  const username = prompt("¿Cómo te llamás?");
+  socket.emit("join", username);
 
-    // avisar al servidor
-    socket.emit("usuario conectado", username);
+  // enviar mensaje
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
 
-    // enviar mensaje
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
+    if (input.value.trim() !== "") {
+      socket.emit("chat message", `${username}: ${input.value}`);
+      input.value = "";
+    }
+  });
 
-      if (input.value) {
-        socket.emit("chat message", {
-          nombre: username,
-          texto: input.value
-        });
-        input.value = "";
-      }
-    });
+  // recibir mensajes normales
+  socket.on("chat message", function (msg) {
+    const li = document.createElement("li");
+    li.textContent = msg;
+    messages.appendChild(li);
+    messages.scrollTop = messages.scrollHeight;
+  });
 
-    // recibir mensajes normales
-    socket.on("chat message", (msg) => {
-      const item = document.createElement("li");
-      item.textContent = `${msg.nombre}: ${msg.texto}`;
-      messages.appendChild(item);
-      messages.scrollTop = messages.scrollHeight;
-    });
+  // mensajes del sistema
+  socket.on("system", function (msg) {
+    const li = document.createElement("li");
+    li.textContent = msg;
+    li.style.fontStyle = "italic";
+    li.style.color = "gray";
+    messages.appendChild(li);
+    messages.scrollTop = messages.scrollHeight;
+  });
+</script>
 
-    // mensajes del sistema
-    socket.on("mensaje sistema", (msg) => {
-      const item = document.createElement("li");
-      item.textContent = msg;
-      item.style.fontStyle = "italic";
-      item.style.color = "gray";
-      messages.appendChild(item);
-      messages.scrollTop = messages.scrollHeight;
-    });
-  </script>
 </body>
 </html>
