@@ -3,7 +3,7 @@ const socket = io();
 let username = "";
 
 while (!username) {
-  username = prompt("Ingresá tu nombre");
+  username = prompt("¿Cuál es tu nombre?");
 }
 
 socket.emit("join", username);
@@ -15,35 +15,23 @@ const messages = document.getElementById("messages");
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  if (input.value.trim() !== "") {
+  if (input.value) {
     socket.emit("chat message", input.value);
     input.value = "";
   }
 });
 
-// MENSAJES NORMALES
 socket.on("chat message", (data) => {
   const item = document.createElement("li");
-
-  item.innerHTML = `
-    <span style="color:${data.color}; font-weight:bold">
-      ${data.username}
-    </span>: ${data.message}
-  `;
-
+  item.textContent = `${data.user}: ${data.text}`;
   messages.appendChild(item);
-  window.scrollTo(0, document.body.scrollHeight);
+  messages.scrollTop = messages.scrollHeight;
 });
 
-// MENSAJES DEL SISTEMA
-socket.on("system", (data) => {
+socket.on("system", (msg) => {
   const item = document.createElement("li");
-
-  item.innerHTML = `
-    <em style="color:${data.color}">
-      ${data.text}
-    </em>
-  `;
-
+  item.style.fontStyle = "italic";
+  item.style.color = "gray";
+  item.textContent = msg;
   messages.appendChild(item);
 });
