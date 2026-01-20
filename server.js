@@ -7,23 +7,51 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static("public"));
 
+// colores
+
+const userColors = {};
+
+function randomColor() {
+  const colors = [
+    "#3b82f6", // azul
+    "#22c55e", // verde
+    "#f97316", // naranja
+    "#a855f7", // violeta
+    "#ef4444", // rojo
+    "#06b6d4", // celeste
+    "#eab308"  // amarillo
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+
 io.on("connection", (socket) => {
 
-  socket.on("join", (username) => {
-    socket.username = username;
-    socket.broadcast.emit("system", `${username} se conectó`);
-  });
+socket.on("join", (username) => {
+  socket.username = username;
 
-  socket.on("chat message", (msg) => {
-    io.emit("chat message", msg);
-  });
+  socket.color = getRandomColor();
 
-  socket.on("disconnect", () => {
-    if (socket.username) {
-      socket.broadcast.emit("system", `${socket.username} se desconectó`);
-    }
+  socket.broadcast.emit("user-connected", {
+    user: username,
+    color: socket.color
   });
+});
 
+
+socket.on("send-message", (message) => {
+  io.emit("chat-message", {
+    user: socket.username,
+    message: message,
+    color: socket.color
+  });
+});
+
+socket.on("disconnect", () => {
+  socket.broadcast.emit("user-disconnected", {
+    user: socket.username,
+    color: socket.color
+  });
 });
 
 
