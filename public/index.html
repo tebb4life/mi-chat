@@ -1,56 +1,114 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Mi Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; }
-    #messages { list-style: none; padding: 0; max-height: 400px; overflow-y: auto; }
-    #messages li { padding: 8px; margin-bottom: 4px; background: #fff; border-radius: 4px; }
-    #form { display: flex; margin-top: 10px; }
-    #input { flex: 1; padding: 8px; }
-    #send { padding: 8px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+
+    #chat {
+      max-width: 500px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      margin-bottom: 10px;
+    }
+
+    li {
+      padding: 5px;
+    }
+
+    form {
+      display: flex;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px;
+      font-size: 16px;
+    }
   </style>
 </head>
+
 <body>
-  <h2>Mi Chat</h2>
-  <ul id="messages"></ul>
-  <form id="form">
-    <input id="input" autocomplete="off" placeholder="Escribe tu mensaje..." />
-    <button id="send">Enviar</button>
-  </form>
+  <div id="chat">
+    <ul id="messages"></ul>
 
-<script src="/socket.io/socket.io.js"></script>
-<script>
-  const socket = io();
+    <form id="form">
+      <input id="input" autocomplete="off" placeholder="Escribí un mensaje..." />
+      <button>Enviar</button>
+    </form>
+  </div>
 
-  // pedir nombre al entrar
-  let username = prompt("¿Cómo te llamás?");
-  if (!username) {
-    username = "Invitado";
-  }
+  <!-- socket.io -->
+  <script src="/socket.io/socket.io.js"></script>
 
-  const form = document.getElementById("form");
-  const input = document.getElementById("input");
-  const messages = document.getElementById("messages");
+  <script>
+    const socket = io();
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+    const messages = document.getElementById("messages");
 
-    if (input.value) {
-      const mensaje = username + ": " + input.value;
-      socket.emit("chat message", mensaje);
-      input.value = "";
-    }
-  });
+    // 👉 pedir nombre
+    let username = prompt("¿Cómo te llamás?");
+    if (!username) username = "Invitado";
 
-  socket.on("chat message", (msg) => {
-    const item = document.createElement("li");
-    item.textContent = msg;
-    messages.appendChild(item);
-    messages.scrollTop = messages.scrollHeight;
-  });
-</script>
+    // avisar al servidor
+    socket.emit("usuario conectado", username);
 
+    // enviar mensaje
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      if (input.value) {
+        socket.emit("chat message", {
+          nombre: username,
+          texto: input.value
+        });
+        input.value = "";
+      }
+    });
+
+    // recibir mensajes normales
+    socket.on("chat message", (msg) => {
+      const item = document.createElement("li");
+      item.textContent = `${msg.nombre}: ${msg.texto}`;
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    // mensajes del sistema
+    socket.on("mensaje sistema", (msg) => {
+      const item = document.createElement("li");
+      item.textContent = msg;
+      item.style.fontStyle = "italic";
+      item.style.color = "gray";
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    });
+  </script>
 </body>
 </html>
