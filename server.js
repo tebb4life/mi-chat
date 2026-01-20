@@ -4,33 +4,44 @@ const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
+
 const io = new Server(server);
 
-// carpeta pública
 app.use(express.static("public"));
 
-// puerto (Render usa process.env.PORT)
-const PORT = process.env.PORT || 3000;
+function getRandomColor() {
+  const colors = [
+    "#e74c3c",
+    "#3498db",
+    "#2ecc71",
+    "#9b59b6",
+    "#f1c40f",
+    "#e67e22",
+    "#1abc9c",
+    "#34495e"
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
 
 io.on("connection", (socket) => {
-
   console.log("Usuario conectado");
 
   socket.on("join", (username) => {
     socket.username = username;
     socket.color = getRandomColor();
 
-    // aviso a los demás
     socket.broadcast.emit("system", {
       text: `${username} se conectó`,
       color: socket.color
     });
   });
 
-  socket.on("chat message", (msg) => {
+  socket.on("chat message", (message) => {
+    if (!socket.username) return;
+
     io.emit("chat message", {
       username: socket.username,
-      message: msg,
+      message: message,
       color: socket.color
     });
   });
@@ -43,24 +54,10 @@ io.on("connection", (socket) => {
       });
     }
   });
-
 });
 
-// función colores
-function getRandomColor() {
-  const colors = [
-    "#e74c3c",
-    "#3498db",
-    "#2ecc71",
-    "#f1c40f",
-    "#9b59b6",
-    "#1abc9c",
-    "#e67e22"
-  ];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
+const PORT = process.env.PORT || 3000;
 
-// iniciar servidor
 server.listen(PORT, () => {
-  console.log("Servidor funcionando en puerto " + PORT);
+  console.log("Servidor corriendo en puerto", PORT);
 });
