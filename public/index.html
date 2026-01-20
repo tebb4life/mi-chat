@@ -66,43 +66,41 @@
   <script src="/socket.io/socket.io.js"></script>
 
  <script>
-  const socket = io();
+const socket = io();
 
-  const form = document.getElementById("form");
-  const input = document.getElementById("input");
-  const messages = document.getElementById("messages");
+// pedir nombre
+let username = prompt("Ingresa tu nombre");
+socket.emit("join", username);
 
-  // pedir nombre
-  const username = prompt("¿Cómo te llamás?");
-  socket.emit("join", username);
+// elementos
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+const messages = document.getElementById("messages");
 
-  // enviar mensaje
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
+// enviar mensaje
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
 
-    if (input.value.trim() !== "") {
-      socket.emit("chat message", `${username}: ${input.value}`);
-      input.value = "";
-    }
-  });
+  if (input.value.trim() !== "") {
+    socket.emit("chat message", input.value);
+    input.value = "";
+  }
+});
 
-  // recibir mensajes normales
-  socket.on("chat message", function (msg) {
-    const li = document.createElement("li");
-    li.textContent = msg;
-    messages.appendChild(li);
-    messages.scrollTop = messages.scrollHeight;
-  });
+// recibir mensajes
+socket.on("chat message", (data) => {
+  const item = document.createElement("li");
+  item.textContent = `${data.user}: ${data.msg}`;
+  messages.appendChild(item);
+});
 
-  // mensajes del sistema
-  socket.on("system", function (msg) {
-    const li = document.createElement("li");
-    li.textContent = msg;
-    li.style.fontStyle = "italic";
-    li.style.color = "gray";
-    messages.appendChild(li);
-    messages.scrollTop = messages.scrollHeight;
-  });
+// mensajes del sistema
+socket.on("system", (msg) => {
+  const item = document.createElement("li");
+  item.textContent = msg;
+  item.style.fontStyle = "italic";
+  messages.appendChild(item);
+});
 </script>
 
 </body>
